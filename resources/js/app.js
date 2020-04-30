@@ -2,6 +2,8 @@
 require('./bootstrap');
 
 import Vue from 'vue'
+
+// Start VueProgressBar
 import VueProgressBar from 'vue-progressbar'
 
 const VueProgressBarOptions = {
@@ -18,8 +20,29 @@ const VueProgressBarOptions = {
   inverse: false
 }
 
-Vue.use(VueProgressBar, VueProgressBarOptions)
 
+Vue.use(VueProgressBar, VueProgressBarOptions)
+// End VueProgressBar
+
+// Start Snotify
+import Snotify, { SnotifyPosition } from 'vue-snotify'
+
+const SnotifyOptions = {
+  toast: {
+    position: SnotifyPosition.rightTop
+  }
+}
+
+
+Vue.use(Snotify, SnotifyOptions)
+// End Snotify
+
+// Start V-Form
+import { Form, HasError, AlertError } from 'vform'
+window.Form = Form
+Vue.component(HasError.name, HasError)
+Vue.component(AlertError.name, AlertError)
+// End V-Form
 
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);

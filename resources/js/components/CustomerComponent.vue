@@ -6,6 +6,10 @@
                     <div class="card-header">
                         <h4 class="card-title">Customers</h4>
                         <div class="card-tools" style="position: absolute;right: 1rem;top: .5rem;">
+                            <button type="button" class="btn btn-info" @click="createCustomer">
+                                Add New Customer
+                                <i class="fas fa-plus"></i>
+                            </button>
                             <button type="button" class="btn btn-success" @click="reloadCustomerData">
                                 REFRESH PAGE
                                 <i class="fas fa-sync"></i>
@@ -54,13 +58,17 @@
                                     <td>{{ customer.phone }}</td>
                                     <td>{{ customer.total }}</td>
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-info btn-sm">
+                                        <button type="button" @click="showCustomer(customer)" class="btn btn-info btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-primary btn-sm">
+                                        <button type="button" @click="editCustomer(customer)"  class="btn btn-primary btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-danger btn-sm">
+                                        <button
+                                            type="button"
+                                            @click="destroyCustomer(customer)"
+                                            class="btn btn-danger btn-sm"
+                                        >
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </td>
@@ -83,8 +91,130 @@
                 </div>
             </div>
         </div>
+<!-- Customer Modal -->
+    <div
+      class="modal fade"
+      id="customerModalLong"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="customerModalLongTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5
+              class="modal-title"
+              id="customerModalLongTitle"
+            >{{ editMode ? "Edit" : "Add New" }} Customer</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form @submit.prevent="editMode ? update() : store()" @keydown="form.onKeydown($event)">
+            <div class="modal-body">
+              <alert-error :form="form"></alert-error>
+              <div class="form-group">
+                <label>Name</label>
+                <input
+                  v-model="form.name"
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  :class="{ 'is-invalid': form.errors.has('name') }"
+                >
+                <has-error :form="form" field="name"></has-error>
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  v-model="form.email"
+                  type="email"
+                  name="email"
+                  class="form-control"
+                  :class="{ 'is-invalid': form.errors.has('email') }"
+                >
+                <has-error :form="form" field="email"></has-error>
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input
+                  v-model="form.phone"
+                  type="tel"
+                  name="phone"
+                  class="form-control"
+                  :class="{ 'is-invalid': form.errors.has('phone') }"
+                >
+                <has-error :form="form" field="phone"></has-error>
+              </div>
+              <div class="form-group">
+                <label>Address</label>
+                <textarea
+                  v-model="form.address"
+                  name="address"
+                  class="form-control"
+                  :class="{ 'is-invalid': form.errors.has('address') }"
+                ></textarea>
+                <has-error :form="form" field="address"></has-error>
+              </div>
+              <div class="form-group">
+                <label>Total</label>
+                <input
+                  v-model="form.total"
+                  type="number"
+                  name="total"
+                  class="form-control"
+                  :class="{ 'is-invalid': form.errors.has('total') }"
+                >
+                <has-error :form="form" field="total"></has-error>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button :disabled="form.busy" type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Customer Modal -->
+    <!-- Customer Show Modal -->
+    <div
+      class="modal fade"
+      id="showModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="showModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="showModalLabel">{{ form.name }}</h5>
 
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <strong>Email : {{ form.email }}</strong>
+            <br>
+            <strong>Phone : {{ form.phone }}</strong>
+            <br>
+            <strong>Total : {{ form.total }}</strong>
+            <br>
+            <strong>Address :</strong>
+            <address>{{ form.address }}</address>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Customer Show Modal -->
         <vue-progress-bar></vue-progress-bar>
+        <vue-snotify></vue-snotify>
     </div>
 </template>
 
@@ -92,9 +222,18 @@
     export default {
         data(){
             return{
+                editMode: false,
                 query: "",
                 queryFiled: "name",
                 customers: [],
+                form: new Form({
+                    id: "",
+                    name: "",
+                    email: "",
+                    phone: "",
+                    address: "",
+                    total: ""
+                }), 
                 pagination: {
                     current_page: 1
                 }
@@ -151,7 +290,121 @@
                 this.getCustomersData();
                 this.query = "";
                 this.queryFiled = "name";
-            },              
+                this.$snotify.success("Customer Data Successfully Refresh", "Success");
+            },
+            createCustomer() {
+                this.editMode = false;
+                this.form.reset();
+                this.form.clear();
+                $("#customerModalLong").modal("show");
+                },
+            store() {
+                this.$Progress.start();
+                this.form.busy = true;
+                this.form
+                    .post("/laravel-ajax-crud/api/customers")
+                    .then(response => {
+                    this.getCustomersData();
+                    $("#customerModalLong").modal("hide");
+                    if (this.form.successful) {
+                        this.$Progress.finish();
+                        this.$snotify.success("Customer Successfully Saved", "Success");
+                    } else {
+                        this.$Progress.fail();
+                        this.$snotify.error(
+                        "Something went wrong try again later.",
+                        "Error"
+                        );
+                    }
+                    })
+                    .catch(e => {
+                    this.$Progress.fail();
+                    console.log(e);
+                    });
+                },
+
+            showCustomer(customer) {
+                this.form.reset();
+                this.form.fill(customer);
+                $("#showModal").modal("show");
+                console.log(customer);
+            },
+            editCustomer(customer) {
+                this.editMode = true;
+                this.form.reset();
+                this.form.clear();
+                this.form.fill(customer);
+                $("#customerModalLong").modal("show");
+            },
+                
+            update() {
+                this.$Progress.start();
+                this.form.busy = true;
+                this.form
+                    .put("/laravel-ajax-crud/api/customers/" + this.form.id)
+                    .then(response => {
+                    this.getCustomersData();
+                    $("#customerModalLong").modal("hide");
+                    if (this.form.successful) {
+                        this.$Progress.finish();
+                        this.$snotify.success("Customer Successfully Updated", "Success");
+                    } else {
+                        this.$Progress.fail();
+                        this.$snotify.error(
+                        "Something went wrong try again later.",
+                        "Error"
+                        );
+                    }
+                    })
+                    .catch(e => {
+                    this.$Progress.fail();
+                    console.log(e);
+                    });
+            },   
+            
+            destroyCustomer(customer) {
+                this.$snotify.clear();
+                this.$snotify.confirm(
+                    "You will not be able to recover this data!",
+                    "Are you sure?",
+                    {
+                    showProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    buttons: [
+                            {
+                                text: "Yes",
+                                action: toast => {
+                                    this.$snotify.remove(toast.id);
+                                    this.$Progress.start();
+                                    axios
+                                    .delete("/laravel-ajax-crud/api/customers/" + customer.id)
+                                    .then(response => {
+                                        this.getCustomersData();
+                                        this.$Progress.finish();
+                                        this.$snotify.success(
+                                        "Customer Successfully Deleted",
+                                        "Success"
+                                        );
+                                    })
+                                    .catch(e => {
+                                        this.$Progress.fail();
+                                        console.log(e);
+                                    });
+                                },
+                                bold: true
+                            },
+                            {
+                                text: "No",
+                                action: toast => {
+                                    this.$snotify.remove(toast.id);
+                                },
+                                bold: true
+                            }
+                        ]
+                    }
+                );
+            }
         }
     }
 </script>
