@@ -1967,14 +1967,56 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      query: "",
+      queryFiled: "name",
       customers: [],
       pagination: {
         current_page: 1
       }
     };
+  },
+  watch: {
+    query: function query(newQ, old) {
+      if (newQ === "") {
+        this.getCustomersData();
+      } else {
+        this.searchCustomerData();
+      }
+    }
   },
   mounted: function mounted() {
     this.getCustomersData();
@@ -1995,6 +2037,26 @@ __webpack_require__.r(__webpack_exports__);
 
         _this.$Progress.fail();
       });
+    },
+    searchCustomerData: function searchCustomerData() {
+      var _this2 = this;
+
+      this.$Progress.start();
+      axios.get("/laravel-ajax-crud/api/search/customers/" + this.queryFiled + "/" + this.query + "?page=" + this.pagination.current_page).then(function (response) {
+        _this2.customers = response.data.data;
+        _this2.pagination = response.data.meta;
+
+        _this2.$Progress.finish();
+      })["catch"](function (e) {
+        console.log(e);
+
+        _this2.$Progress.fail();
+      });
+    },
+    reloadCustomerData: function reloadCustomerData() {
+      this.getCustomersData();
+      this.query = "";
+      this.queryFiled = "name";
     }
   }
 });
@@ -37762,62 +37824,207 @@ var render = function() {
       _c("div", { staticClass: "row justify-content-center" }, [
         _c("div", { staticClass: "col-md-12" }, [
           _c("div", { staticClass: "card" }, [
-            _c("div", { staticClass: "card-header" }, [_vm._v("Customers")]),
-            _vm._v(" "),
-            _c("div", { staticClass: "card-body" }, [
-              _c("div", { staticClass: "table-responsive" }, [
-                _c(
-                  "table",
-                  {
-                    staticClass:
-                      "table table-hover table-bordered table-striped"
-                  },
-                  [
-                    _vm._m(0),
-                    _vm._v(" "),
-                    _c(
-                      "tbody",
-                      _vm._l(_vm.customers, function(customer, index) {
-                        return _c("tr", { key: customer.id }, [
-                          _c("th", { attrs: { scope: "row" } }, [
-                            _vm._v(_vm._s(index + 1))
-                          ]),
-                          _vm._v(" "),
-                          _c("td", [_vm._v(_vm._s(customer.name))]),
-                          _vm._v(" "),
-                          _c("td", [_vm._v(_vm._s(customer.email))]),
-                          _vm._v(" "),
-                          _c("td", [_vm._v(_vm._s(customer.phone))]),
-                          _vm._v(" "),
-                          _c("td", [_vm._v(_vm._s(customer.total))]),
-                          _vm._v(" "),
-                          _vm._m(1, true)
-                        ])
-                      }),
-                      0
-                    )
-                  ]
-                )
-              ])
+            _c("div", { staticClass: "card-header" }, [
+              _c("h4", { staticClass: "card-title" }, [_vm._v("Customers")]),
+              _vm._v(" "),
+              _c(
+                "div",
+                {
+                  staticClass: "card-tools",
+                  staticStyle: {
+                    position: "absolute",
+                    right: "1rem",
+                    top: ".5rem"
+                  }
+                },
+                [
+                  _c(
+                    "button",
+                    {
+                      staticClass: "btn btn-success",
+                      attrs: { type: "button" },
+                      on: { click: _vm.reloadCustomerData }
+                    },
+                    [
+                      _vm._v(
+                        "\n                            REFRESH PAGE\n                            "
+                      ),
+                      _c("i", { staticClass: "fas fa-sync" })
+                    ]
+                  )
+                ]
+              )
             ]),
             _vm._v(" "),
-            _c(
-              "div",
-              { staticClass: "card-footer" },
-              [
-                _vm.pagination.last_page > 1
-                  ? _c("pagination", {
-                      attrs: { pagination: _vm.pagination, offset: 5 },
+            _c("div", { staticClass: "card-body" }, [
+              _c("div", { staticClass: "mb-3" }, [
+                _c("div", { staticClass: "row" }, [
+                  _vm._m(0),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "col-md-3" }, [
+                    _c(
+                      "select",
+                      {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.queryFiled,
+                            expression: "queryFiled"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: { id: "fileds" },
+                        on: {
+                          change: function($event) {
+                            var $$selectedVal = Array.prototype.filter
+                              .call($event.target.options, function(o) {
+                                return o.selected
+                              })
+                              .map(function(o) {
+                                var val = "_value" in o ? o._value : o.value
+                                return val
+                              })
+                            _vm.queryFiled = $event.target.multiple
+                              ? $$selectedVal
+                              : $$selectedVal[0]
+                          }
+                        }
+                      },
+                      [
+                        _c("option", { attrs: { value: "name" } }, [
+                          _vm._v("Name")
+                        ]),
+                        _vm._v(" "),
+                        _c("option", { attrs: { value: "email" } }, [
+                          _vm._v("Email")
+                        ]),
+                        _vm._v(" "),
+                        _c("option", { attrs: { value: "phone" } }, [
+                          _vm._v("Phone")
+                        ]),
+                        _vm._v(" "),
+                        _c("option", { attrs: { value: "address" } }, [
+                          _vm._v("Address")
+                        ]),
+                        _vm._v(" "),
+                        _c("option", { attrs: { value: "total" } }, [
+                          _vm._v("Total")
+                        ])
+                      ]
+                    )
+                  ]),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "col-md-7" }, [
+                    _c("input", {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.query,
+                          expression: "query"
+                        }
+                      ],
+                      staticClass: "form-control",
+                      attrs: { type: "text", placeholder: "Search" },
+                      domProps: { value: _vm.query },
                       on: {
-                        paginate: function($event) {
-                          return _vm.getCustomersData()
+                        input: function($event) {
+                          if ($event.target.composing) {
+                            return
+                          }
+                          _vm.query = $event.target.value
                         }
                       }
                     })
-                  : _vm._e()
-              ],
-              1
-            )
+                  ])
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "div",
+                { staticClass: "table-responsive" },
+                [
+                  _c(
+                    "table",
+                    {
+                      staticClass:
+                        "table table-hover table-bordered table-striped"
+                    },
+                    [
+                      _vm._m(1),
+                      _vm._v(" "),
+                      _c(
+                        "tbody",
+                        [
+                          _vm._l(_vm.customers, function(customer, index) {
+                            return _c(
+                              "tr",
+                              {
+                                directives: [
+                                  {
+                                    name: "show",
+                                    rawName: "v-show",
+                                    value: _vm.customers.length,
+                                    expression: "customers.length"
+                                  }
+                                ],
+                                key: customer.id
+                              },
+                              [
+                                _c("th", { attrs: { scope: "row" } }, [
+                                  _vm._v(_vm._s(index + 1))
+                                ]),
+                                _vm._v(" "),
+                                _c("td", [_vm._v(_vm._s(customer.name))]),
+                                _vm._v(" "),
+                                _c("td", [_vm._v(_vm._s(customer.email))]),
+                                _vm._v(" "),
+                                _c("td", [_vm._v(_vm._s(customer.phone))]),
+                                _vm._v(" "),
+                                _c("td", [_vm._v(_vm._s(customer.total))]),
+                                _vm._v(" "),
+                                _vm._m(2, true)
+                              ]
+                            )
+                          }),
+                          _vm._v(" "),
+                          _c(
+                            "tr",
+                            {
+                              directives: [
+                                {
+                                  name: "show",
+                                  rawName: "v-show",
+                                  value: !_vm.customers.length,
+                                  expression: "!customers.length"
+                                }
+                              ]
+                            },
+                            [_vm._m(3)]
+                          )
+                        ],
+                        2
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _vm.pagination.last_page > 1
+                    ? _c("pagination", {
+                        attrs: { pagination: _vm.pagination, offset: 5 },
+                        on: {
+                          paginate: function($event) {
+                            _vm.query === ""
+                              ? _vm.getCustomersData()
+                              : _vm.searchCustomerData()
+                          }
+                        }
+                      })
+                    : _vm._e()
+                ],
+                1
+              )
+            ])
           ])
         ])
       ]),
@@ -37828,6 +38035,14 @@ var render = function() {
   )
 }
 var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-md-2 text-right" }, [
+      _c("strong", [_vm._v("Search By :")])
+    ])
+  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -37870,6 +38085,18 @@ var staticRenderFns = [
       _c("button", { staticClass: "btn btn-danger btn-sm" }, [
         _c("i", { staticClass: "fas fa-trash-alt" })
       ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("td", { attrs: { colspan: "6" } }, [
+      _c(
+        "div",
+        { staticClass: "alert alert-danger", attrs: { role: "alert" } },
+        [_vm._v("Sorry :( No customers data found.")]
+      )
     ])
   }
 ]

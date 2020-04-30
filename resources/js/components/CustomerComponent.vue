@@ -3,9 +3,37 @@
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">Customers</div>
+                    <div class="card-header">
+                        <h4 class="card-title">Customers</h4>
+                        <div class="card-tools" style="position: absolute;right: 1rem;top: .5rem;">
+                            <button type="button" class="btn btn-success" @click="reloadCustomerData">
+                                REFRESH PAGE
+                                <i class="fas fa-sync"></i>
+                            </button>
+                        </div>
+                    </div>
 
                     <div class="card-body">
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-2 text-right">
+                                    <strong>Search By :</strong>
+                                </div>
+                                <div class="col-md-3">
+                                    <select v-model="queryFiled" class="form-control" id="fileds">
+                                        <option value="name">Name</option>
+                                        <option value="email">Email</option>
+                                        <option value="phone">Phone</option>
+                                        <option value="address">Address</option>
+                                        <option value="total">Total</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-7">
+                                    <input v-model="query" type="text" class="form-control" placeholder="Search">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-hover table-bordered table-striped">
                                 <thead>
@@ -19,7 +47,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="(customer, index) in customers" :key="customer.id" >
+                                <tr v-show="customers.length" v-for="(customer, index) in customers" :key="customer.id" >
                                     <th scope="row">{{ index+1 }}</th>
                                     <td>{{ customer.name }}</td>
                                     <td>{{ customer.email }}</td>
@@ -37,17 +65,20 @@
                                         </button>
                                     </td>
                                 </tr>
+                                <tr v-show="!customers.length">
+                                    <td colspan="6">
+                                    <div class="alert alert-danger" role="alert">Sorry :( No customers data found.</div>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
+                            <pagination
+                                v-if="pagination.last_page > 1"
+                                :pagination="pagination"
+                                :offset="5"
+                                @paginate="query === '' ? getCustomersData() : searchCustomerData()"
+                            ></pagination>
                         </div>
-                    </div>
-                    <div class="card-footer">
-                        <pagination
-                            v-if="pagination.last_page > 1"
-                            :pagination="pagination"
-                            :offset="5"
-                            @paginate="getCustomersData()"
-                        ></pagination>
                     </div>
                 </div>
             </div>
@@ -61,9 +92,20 @@
     export default {
         data(){
             return{
+                query: "",
+                queryFiled: "name",
                 customers: [],
                 pagination: {
                     current_page: 1
+                }
+            }
+        },
+        watch: {
+            query: function(newQ, old) {
+                if (newQ === "") {
+                    this.getCustomersData();
+                } else {
+                    this.searchCustomerData();
                 }
             }
         },
@@ -84,7 +126,32 @@
                     console.log(e)
                     this.$Progress.fail()
                 }) 
-            }               
+            },
+            searchCustomerData() {
+                this.$Progress.start();
+                axios.get(
+                    "/laravel-ajax-crud/api/search/customers/" +
+                        this.queryFiled +
+                        "/" +
+                        this.query +
+                        "?page=" +
+                        this.pagination.current_page
+                )
+                .then(response => {
+                    this.customers = response.data.data;
+                    this.pagination = response.data.meta;
+                    this.$Progress.finish();
+                })
+                .catch(e => {
+                    console.log(e);
+                    this.$Progress.fail();
+                });
+            },             
+            reloadCustomerData() {
+                this.getCustomersData();
+                this.query = "";
+                this.queryFiled = "name";
+            },              
         }
     }
 </script>
