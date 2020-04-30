@@ -22,10 +22,20 @@
                                 <tr v-for="(customer, index) in customers" :key="customer.id" >
                                     <th scope="row">{{ index+1 }}</th>
                                     <td>{{ customer.name }}</td>
-                                    <td>Otto</td>
-                                    <td>@mdo</td>
-                                    <td>@mdo</td>
-                                    <td>@mdo</td>
+                                    <td>{{ customer.email }}</td>
+                                    <td>{{ customer.phone }}</td>
+                                    <td>{{ customer.total }}</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -34,6 +44,7 @@
                 </div>
             </div>
         </div>
+        <vue-progress-bar></vue-progress-bar>
     </div>
 </template>
 
@@ -50,12 +61,15 @@
         },
         methods: {
             getCustomersData(){
+                this.$Progress.start()
                 axios.get('/laravel-ajax-crud/api/customers')
                 .then(response=>{
                     this.customers = response.data.data
+                    this.$Progress.finish()
                 })
                 .catch(e=>{
                     console.log(e)
+                    this.$Progress.fail()
                 }) 
             }               
         }
