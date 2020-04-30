@@ -41,9 +41,18 @@
                             </table>
                         </div>
                     </div>
+                    <div class="card-footer">
+                        <pagination
+                            v-if="pagination.last_page > 1"
+                            :pagination="pagination"
+                            :offset="5"
+                            @paginate="getCustomersData()"
+                        ></pagination>
+                    </div>
                 </div>
             </div>
         </div>
+
         <vue-progress-bar></vue-progress-bar>
     </div>
 </template>
@@ -52,19 +61,23 @@
     export default {
         data(){
             return{
-                customers: []
+                customers: [],
+                pagination: {
+                    current_page: 1
+                }
             }
         },
         mounted() {
-            console.log('Component mounted.')
             this.getCustomersData();
         },
         methods: {
             getCustomersData(){
                 this.$Progress.start()
-                axios.get('/laravel-ajax-crud/api/customers')
+                axios.get('/laravel-ajax-crud/api/customers?page=' + this.pagination.current_page)
                 .then(response=>{
+                    //console.log(response)
                     this.customers = response.data.data
+                    this.pagination = response.data.meta
                     this.$Progress.finish()
                 })
                 .catch(e=>{
